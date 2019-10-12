@@ -1,4 +1,5 @@
+# Tool files
 .vscode
-*/makefile
-*/a
-*/test.*
+
+# Build files
+build*

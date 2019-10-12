@@ -1,64 +1,75 @@
 #ifndef MATRIX_HPP
 #define MATRIX_HPP
 
-#include<initializer_list>
-#include<utility>
-#include<stdexcept>
-#include<iostream>
+#include <initializer_list>
+#include <iostream>
+#include <stdexcept>
+#include <utility>
 
 template<class T>
 class Matrix
 {
 public:
     Matrix();
-    explicit Matrix(size_t);
+    explicit Matrix(size_t size);
     Matrix(size_t, size_t);
     Matrix(size_t, size_t, const T&);
     Matrix(const std::initializer_list<std::initializer_list<T>>&);
     Matrix(const Matrix<T>&);
-    Matrix(Matrix<T>&&) = default;
+    Matrix(Matrix<T>&&) noexcept = default;
 
-    size_t countOfRows() const;
-    size_t countOfColumns() const;
-    std::pair<size_t, size_t> size() const;
-    
+    size_t countOfRows() const noexcept;
+    size_t countOfColumns() const noexcept;
+    std::pair<size_t, size_t> size() const noexcept;
+
     void swapRows(size_t, size_t);
     void swapColumns(size_t, size_t);
 
-    bool isEmpty() const;
-    bool isSquare() const;
+    Matrix<T>& transpose();
+    Matrix<T> transposeCopy() const;
 
-    Matrix<T>& operator= (const Matrix<T>&);
-    Matrix<T>& operator= (Matrix<T>&&);
-    Matrix<T>& operator+= (const Matrix<T>&);
-    Matrix<T>& operator-= (const Matrix<T>&);
-    Matrix<T>& operator*= (const T&);
-    Matrix<T>& operator/= (const T&);
+    bool isEmpty() const noexcept;
+    bool isSquare() const noexcept;
 
-    Matrix<T> operator+ (const Matrix<T>&) const;
-    Matrix<T> operator- (const Matrix<T>&) const;
-    Matrix<T> operator* (const T&) const;
-    Matrix<T> operator/ (const T&) const;
+    Matrix<T>& operator=(const Matrix<T>& other);
+    Matrix<T>& operator=(Matrix<T>&& other) noexcept;
+    Matrix<T>& operator+=(const Matrix<T>& other);
+    Matrix<T>& operator-=(const Matrix<T>& other);
+    Matrix<T>& operator*=(const Matrix<T>& other);
+    Matrix<T>& operator*=(const T& value);
+    Matrix<T>& operator/=(const T& value);
+    Matrix<T>& operator%=(const T& value);
 
-    T * const operator[] (size_t i);
-    const T * const operator[] (size_t) const;
+    Matrix<T> operator+(const Matrix<T>& other) const;
+    Matrix<T> operator-(const Matrix<T>& other) const;
+    Matrix<T> operator*(const Matrix<T>& other) const;
+    Matrix<T> operator*(const T& value) const;
+    Matrix<T> operator/(const T& value) const;
+    Matrix<T> operator%(const T& value) const;
+
+    T* operator[](size_t);
+    const T* operator[](size_t) const;
     T& at(size_t, size_t);
     const T& at(size_t, size_t) const;
 
-    bool operator== (const Matrix<T>&) const;
-    bool operator!= (const Matrix<T>&) const;
+    bool operator==(const Matrix<T>&) const;
+    bool operator!=(const Matrix<T>&) const;
 
-    template<class TT> friend Matrix<TT> operator* (const TT&, const Matrix<TT>&);
+    template<class TT>
+    friend Matrix<TT> operator*(const TT&, const Matrix<TT>&);
 
-    template<class TT> friend std::istream& operator>> (std::istream&, const Matrix<TT>&);
-    template<class TT> friend std::ostream& operator<< (std::ostream&, const Matrix<TT>&);
+    template<class TT>
+    friend std::istream& operator>>(std::istream&, const Matrix<TT>&);
+    template<class TT>
+    friend std::ostream& operator<<(std::ostream&, const Matrix<TT>&);
 
-    template<class TT> friend void swap(Matrix<TT>&, Matrix<TT>&);
+    template<class TT>
+    friend void swap(Matrix<TT>&, Matrix<TT>&) noexcept;
 
     ~Matrix();
 
 private:
-    T ** _matrix;
+    T** _matrix;
     size_t rowCount, columnCount;
 
     inline void create(size_t, size_t);
@@ -90,15 +101,14 @@ Matrix<T>::Matrix(size_t size) : rowCount(size), columnCount(size)
 }
 
 template<class T>
-Matrix<T>::Matrix(size_t row_Count, size_t column_Count)
-            : rowCount(row_Count), columnCount(column_Count)
+Matrix<T>::Matrix(size_t row_Count, size_t column_Count) : rowCount(row_Count), columnCount(column_Count)
 {
     create(row_Count, column_Count);
 }
 
 template<class T>
 Matrix<T>::Matrix(size_t row_Count, size_t column_Count, const T& value)
-            : rowCount(row_Count), columnCount(column_Count)
+    : rowCount(row_Count), columnCount(column_Count)
 {
     create(row_Count, column_Count);
 
@@ -108,7 +118,6 @@ Matrix<T>::Matrix(size_t row_Count, size_t column_Count, const T& value)
         }
     }
 }
-
 
 template<class T>
 Matrix<T>::Matrix(const std::initializer_list<std::initializer_list<T>>& il)
@@ -134,7 +143,7 @@ Matrix<T>::Matrix(const std::initializer_list<std::initializer_list<T>>& il)
             _matrix = new T*[rowCount];
             for (size_t i = 0; i < rowCount; ++i) {
                 _matrix[i] = new T[columnCount];
-                
+
                 auto it = (il.begin() + i)->begin();
                 for (size_t j = 0; j < columnCount; ++j, ++it) {
                     _matrix[i][j] = *it;
@@ -144,10 +153,8 @@ Matrix<T>::Matrix(const std::initializer_list<std::initializer_list<T>>& il)
     }
 }
 
-
 template<class T>
-Matrix<T>::Matrix(const Matrix<T>& other)
-        : rowCount(other.rowCount), columnCount(other.columnCount)
+Matrix<T>::Matrix(const Matrix<T>& other) : rowCount(other.rowCount), columnCount(other.columnCount)
 {
     create(rowCount, columnCount);
 
@@ -159,19 +166,19 @@ Matrix<T>::Matrix(const Matrix<T>& other)
 }
 
 template<class T>
-size_t Matrix<T>::countOfRows() const
+inline size_t Matrix<T>::countOfRows() const noexcept
 {
     return rowCount;
 }
 
 template<class T>
-size_t Matrix<T>::countOfColumns() const
+inline size_t Matrix<T>::countOfColumns() const noexcept
 {
     return columnCount;
 }
 
 template<class T>
-std::pair<size_t, size_t> Matrix<T>::size() const
+inline std::pair<size_t, size_t> Matrix<T>::size() const noexcept
 {
     return std::pair<size_t, size_t>(rowCount, columnCount);
 }
@@ -197,29 +204,60 @@ void Matrix<T>::swapColumns(size_t col_i1, size_t col_i2)
 }
 
 template<class T>
-bool Matrix<T>::isEmpty() const
+Matrix<T>& Matrix<T>::transpose()
+{
+    Matrix<T> tmp(columnCount, rowCount);
+
+    for (size_t i = 0; i < rowCount; ++i) {
+        for (size_t j = 0; j < columnCount; ++j) {
+            tmp._matrix[j][i] = _matrix[i][j];
+        }
+    }
+
+    return *this = std::move(tmp);
+}
+
+template<class T>
+Matrix<T> Matrix<T>::transposeCopy() const
+{
+    Matrix<T> tmp(columnCount, rowCount);
+
+    for (size_t i = 0; i < rowCount; ++i) {
+        for (size_t j = 0; j < columnCount; ++j) {
+            tmp._matrix[j][i] = _matrix[i][j];
+        }
+    }
+
+    return tmp;
+}
+
+template<class T>
+inline bool Matrix<T>::isEmpty() const noexcept
 {
     return rowCount == 0;
 }
 
 template<class T>
-bool Matrix<T>::isSquare() const
+inline bool Matrix<T>::isSquare() const noexcept
 {
     return rowCount == columnCount;
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator= (const Matrix<T>& other)
+Matrix<T>& Matrix<T>::operator=(const Matrix<T>& other)
 {
-    this->~Matrix();
+    if (this != &other) {
+        if (rowCount != other.rowCount || columnCount != other.columnCount) {
+            this->~Matrix();
+            rowCount = other.rowCount;
+            columnCount = other.columnCount;
+            create(rowCount, columnCount);
+        }
 
-    rowCount = other.rowCount;
-    columnCount = other.columnCount;
-    create(rowCount, columnCount);
-
-    for (size_t i = 0; i < rowCount; ++i) {
-        for (size_t j = 0; j < columnCount; ++j) {
-            _matrix[i][j] = other._matrix[i][j];
+        for (size_t i = 0; i < rowCount; ++i) {
+            for (size_t j = 0; j < columnCount; ++j) {
+                _matrix[i][j] = other._matrix[i][j];
+            }
         }
     }
 
@@ -227,7 +265,7 @@ Matrix<T>& Matrix<T>::operator= (const Matrix<T>& other)
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator= (Matrix<T>&& other)
+Matrix<T>& Matrix<T>::operator=(Matrix<T>&& other) noexcept
 {
     this->~Matrix();
 
@@ -243,7 +281,7 @@ Matrix<T>& Matrix<T>::operator= (Matrix<T>&& other)
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator+= (const Matrix<T>& other)
+Matrix<T>& Matrix<T>::operator+=(const Matrix<T>& other)
 {
     if (rowCount != other.rowCount || columnCount != other.columnCount) {
         throw std::invalid_argument("Incorrect operator+= argument");
@@ -259,7 +297,7 @@ Matrix<T>& Matrix<T>::operator+= (const Matrix<T>& other)
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator-= (const Matrix<T>& other)
+Matrix<T>& Matrix<T>::operator-=(const Matrix<T>& other)
 {
     if (rowCount != other.rowCount || columnCount != other.columnCount) {
         throw std::invalid_argument("Incorrect operator-= argument");
@@ -275,7 +313,13 @@ Matrix<T>& Matrix<T>::operator-= (const Matrix<T>& other)
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator*= (const T& value)
+Matrix<T>& Matrix<T>::operator*=(const Matrix<T>& other)
+{
+    return *this = std::move(*this * other);
+}
+
+template<class T>
+Matrix<T>& Matrix<T>::operator*=(const T& value)
 {
     for (size_t i = 0; i < rowCount; ++i) {
         for (size_t j = 0; j < columnCount; ++j) {
@@ -287,7 +331,7 @@ Matrix<T>& Matrix<T>::operator*= (const T& value)
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator/= (const T& value)
+Matrix<T>& Matrix<T>::operator/=(const T& value)
 {
     for (size_t i = 0; i < rowCount; ++i) {
         for (size_t j = 0; j < columnCount; ++j) {
@@ -299,7 +343,19 @@ Matrix<T>& Matrix<T>::operator/= (const T& value)
 }
 
 template<class T>
-Matrix<T> Matrix<T>::operator+ (const Matrix<T>& other) const
+Matrix<T>& Matrix<T>::operator%=(const T& value)
+{
+    for (size_t i = 0; i < rowCount; ++i) {
+        for (size_t j = 0; j < columnCount; ++j) {
+            _matrix[i][j] %= value;
+        }
+    }
+
+    return *this;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::operator+(const Matrix<T>& other) const
 {
     if (rowCount != other.rowCount || columnCount != other.columnCount) {
         throw std::invalid_argument("Incorrect operator+ argument");
@@ -317,12 +373,12 @@ Matrix<T> Matrix<T>::operator+ (const Matrix<T>& other) const
 }
 
 template<class T>
-Matrix<T> Matrix<T>::operator- (const Matrix<T>& other) const
+Matrix<T> Matrix<T>::operator-(const Matrix<T>& other) const
 {
     if (rowCount != other.rowCount || columnCount != other.columnCount) {
         throw std::invalid_argument("Incorrect operator- argument");
     }
-    
+
     Matrix<T> result(*this);
 
     for (size_t i = 0; i < rowCount; ++i) {
@@ -335,7 +391,27 @@ Matrix<T> Matrix<T>::operator- (const Matrix<T>& other) const
 }
 
 template<class T>
-Matrix<T> Matrix<T>::operator* (const T& value) const
+Matrix<T> Matrix<T>::operator*(const Matrix<T>& other) const
+{
+    if (columnCount != other.rowCount) {
+        throw std::invalid_argument("Incorrect matrix multiplication argument");
+    }
+
+    Matrix<T> result(rowCount, other.columnCount);
+
+    for (size_t i = 0; i < rowCount; ++i) {
+        for (size_t j = 0; j < result.columnCount; ++j) {
+            result._matrix[i][j] = _matrix[i][0] * other._matrix[0][j];
+            for (size_t k = 1; k < columnCount; ++k) {
+                result._matrix[i][j] += _matrix[i][k] * other._matrix[k][j];
+            }
+        }
+    }
+    return result;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::operator*(const T& value) const
 {
     Matrix<T> result(*this);
     for (size_t i = 0; i < rowCount; ++i) {
@@ -348,7 +424,7 @@ Matrix<T> Matrix<T>::operator* (const T& value) const
 }
 
 template<class T>
-Matrix<T> Matrix<T>::operator/ (const T& value) const
+Matrix<T> Matrix<T>::operator/(const T& value) const
 {
     Matrix<T> result(*this);
     for (size_t i = 0; i < rowCount; ++i) {
@@ -361,13 +437,26 @@ Matrix<T> Matrix<T>::operator/ (const T& value) const
 }
 
 template<class T>
-T * const Matrix<T>::operator[] (size_t i)
+Matrix<T> Matrix<T>::operator%(const T& value) const
+{
+    Matrix<T> result(*this);
+    for (size_t i = 0; i < rowCount; ++i) {
+        for (size_t j = 0; j < columnCount; ++j) {
+            result._matrix[i][j] %= value;
+        }
+    }
+
+    return result;
+}
+
+template<class T>
+T* Matrix<T>::operator[](size_t i)
 {
     return _matrix[i];
 }
 
 template<class T>
-const T * const Matrix<T>::operator[] (size_t i) const
+const T* Matrix<T>::operator[](size_t i) const
 {
     return _matrix[i];
 }
@@ -376,7 +465,7 @@ template<class T>
 T& Matrix<T>::at(size_t i, size_t j)
 {
     if (i >= rowCount || j >= columnCount) {
-        throw std::out_of_range();
+        throw std::out_of_range("incorrect indexes of matrix");
     }
 
     return _matrix[i][j];
@@ -386,14 +475,14 @@ template<class T>
 const T& Matrix<T>::at(size_t i, size_t j) const
 {
     if (i >= rowCount || j >= columnCount) {
-        throw std::out_of_range();
+        throw std::out_of_range("incorrect indexes of matrix");
     }
 
     return _matrix[i][j];
 }
 
 template<class T>
-bool Matrix<T>::operator== (const Matrix<T>& other) const
+bool Matrix<T>::operator==(const Matrix<T>& other) const
 {
     if (rowCount != other.rowCount || columnCount != other.columnCount) {
         return false;
@@ -411,7 +500,7 @@ bool Matrix<T>::operator== (const Matrix<T>& other) const
 }
 
 template<class T>
-bool Matrix<T>::operator!= (const Matrix<T>& other) const
+bool Matrix<T>::operator!=(const Matrix<T>& other) const
 {
     if (rowCount != other.rowCount || columnCount != other.columnCount) {
         return true;
@@ -429,7 +518,7 @@ bool Matrix<T>::operator!= (const Matrix<T>& other) const
 }
 
 template<class T>
-Matrix<T> operator* (const T& value, const Matrix<T>& matrix)
+Matrix<T> operator*(const T& value, const Matrix<T>& matrix)
 {
     Matrix<T> result(matrix);
 
@@ -443,39 +532,39 @@ Matrix<T> operator* (const T& value, const Matrix<T>& matrix)
 }
 
 template<class T>
-std::istream& operator>> (std::istream& ist, const Matrix<T>& matrix)
+std::istream& operator>>(std::istream& ist, const Matrix<T>& matrix)
 {
     for (size_t i = 0; i < matrix.rowCount; ++i) {
-		for (size_t j = 0; j < matrix.columnCount; ++j) {
-			ist >> matrix._matrix[i][j];
-		}
-	}
-	return ist;
+        for (size_t j = 0; j < matrix.columnCount; ++j) {
+            ist >> matrix._matrix[i][j];
+        }
+    }
+    return ist;
 }
 
 template<class T>
-std::ostream& operator<< (std::ostream& ost, const Matrix<T>& matrix)
+std::ostream& operator<<(std::ostream& ost, const Matrix<T>& matrix)
 {
     if (matrix.rowCount == 0) {
         return ost;
     }
 
     for (size_t i = 0; i < matrix.rowCount - 1; ++i) {
-		for (size_t j = 0; j < matrix.columnCount - 1; ++j) {
-			ost << matrix._matrix[i][j] << " ";
-		}
+        for (size_t j = 0; j < matrix.columnCount - 1; ++j) {
+            ost << matrix._matrix[i][j] << " ";
+        }
         ost << matrix._matrix[i][matrix.columnCount - 1] << std::endl;
-	}
+    }
     for (size_t j = 0; j < matrix.columnCount - 1; ++j) {
-		ost << matrix._matrix[matrix.rowCount - 1][j] << " ";
-	}
+        ost << matrix._matrix[matrix.rowCount - 1][j] << " ";
+    }
     ost << matrix._matrix[matrix.rowCount - 1][matrix.columnCount - 1];
 
-	return ost;
+    return ost;
 }
 
 template<class T>
-void swap(Matrix<T>& lhs, Matrix<T>& rhs)
+void swap(Matrix<T>& lhs, Matrix<T>& rhs) noexcept
 {
     std::swap(lhs.rowCount, rhs.rowCount);
     std::swap(lhs.columnCount, rhs.columnCount);
@@ -491,4 +580,4 @@ Matrix<T>::~Matrix()
     delete[] _matrix;
 }
 
-#endif
+#endif // MATRIX_HPP
