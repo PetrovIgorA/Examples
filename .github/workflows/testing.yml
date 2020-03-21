@@ -1,0 +1,21 @@
+name: Example_testing
+
+on: [push]
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Configuration
+      run: sudo bash configure.sh
+
+    - name: Building
+      run: bash default_build.sh
+
+    - name: Testing
+      run: |
+        cd build
+        make test

@@ -1,5 +1,7 @@
 # C++ Examples
 
+[![Build and Test](https://github.com/PetrovIgorA/Examples/workflows/Example_testing/badge.svg)](https://github.com/PetrovIgorA/Examples/actions)
+
 For running test you need install cmake and googletest.  
 Manual installing is [here](docs/Installing.md).
 
